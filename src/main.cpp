@@ -26,6 +26,13 @@ int main(int argc, char const *argv[])
 	{
 		testBuild(TestSet[i]);
 	}
+
+	cout<<"Testing shift-and-add algorithm"<<endl;
+	float x=3.5;
+	float result = computeMult2(28,1,build(7,5), 1);
+	cout <<"result"<<result << endl;
+	cout <<"expected result:"<< (float) 7/5 <<endl;
+
 	return 0;
 }
 
@@ -36,7 +43,7 @@ bool testBuild(int testElement[])
 	int * tuple=ratNum.getTuple();
 	for (int i=0; i<4;i++)
 	{
-		cout<<"comparing "<<tuple[i]<<" and "<<testElement[i+2]<<endl;
+		//cout<<"comparing "<<tuple[i]<<" and "<<testElement[i+2]<<endl;
 		if (tuple[i]!=testElement[i+2])
 		{
 			cout<<"error in testBuild!"<<endl;
