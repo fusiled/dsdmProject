@@ -159,11 +159,11 @@ unsigned int RationalConstants::computeMult2(int w0, int wh, PeriodicRepresentat
 
 	if (j <= i)
 	{
-		r= ( h*x + pi[j] ) + pi[i] << ( s<<i );
+		r= ( (h*x)<<((s<<i)+s) + pi[j] ) + pi[i] << ( s<<i );
 	} 
 	else
 	{
-		r= h*x + ( pi[i]  + pi[i] << ( s<<i ) );
+		r= (h*x)<< (s<<i) + ( pi[i]  + pi[i] << ( s<<i ) );
 	}
 	delete [] pi;
 	cout<<"returning "<<r<<endl;
