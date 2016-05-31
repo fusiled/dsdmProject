@@ -2,9 +2,11 @@
 #define RATIONALCONSTANTS_H 
 
 
+#include <iostream>
 #include "PeriodicRepresentation.h"
 #include <cmath>
 
+using namespace std;
 
 namespace RationalConstants
 {
@@ -35,7 +37,7 @@ void simplify(int a, int b, int * c, int * d)
 	do{
 		value = gcd(a,b);
 		a=a/value;
-		a=b/value;
+		b=b/value;
 	} while (value !=1);
 	*c=a;
 	*d=b;
@@ -43,9 +45,11 @@ void simplify(int a, int b, int * c, int * d)
 
 PeriodicRepresentation RationalConstants::build(int a, int b)
 {
+		cout<<"Building PeriodicRepresentation for "<<a<<"/"<<b<<endl;
 		//reduce a/b into c/d
 		int c,d;
 		simplify(a, b, &c, &d);
+		cout<<"Simplified fraction: "<<c<<"/"<<d<<endl;
 		//begin decomposition
 		int e = 0 ;
 		int h, p, s; 
@@ -81,6 +85,7 @@ PeriodicRepresentation RationalConstants::build(int a, int b)
 			}
 			p = c * t / d ;
 		}
+		cout<<"Generating PeriodicRepresentation instance with (e="<<e<<", h="<<h<<", p="<<p<<", s="<<s<<")"<<endl;
 		return PeriodicRepresentation(e, h, p, s);
 }
 
