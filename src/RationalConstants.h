@@ -1,10 +1,16 @@
+#ifndef RATIONALCONSTANTS_H
+#define RATIONALCONSTANTS_H 
+
+
 #include "PeriodicRepresentation.h"
+#include <cmath>
+
 
 namespace RationalConstants
 {
 
 	//returns a periodic representation of the number a/b
-	PeriodicRepresentation & build(int a, int b);
+	PeriodicRepresentation build(int a, int b);
 	//compute the mult
 	float computeMult(int w0, int wh, PeriodicRepresentation & ratConst, float x ); //x must be specified better.. evaluate a generic	
 	//needed?
@@ -13,11 +19,33 @@ namespace RationalConstants
 	int correctRounding(int N, int Q);	
 }
 
-PeriodicRepr & PeriodicReprFactory::build(int a, int b)
+
+int gcd ( int a, int b )
+{
+  int c;
+  while ( a != 0 ) {
+     c = a; a = b%a;  b = c;
+  }
+  return b;
+}
+
+void simplify(int a, int b, int * c, int * d)
+{
+	int value=1;
+	do{
+		value = gcd(a,b);
+		a=a/value;
+		a=b/value;
+	} while (value !=1);
+	*c=a;
+	*d=b;
+}
+
+PeriodicRepresentation RationalConstants::build(int a, int b)
 {
 		//reduce a/b into c/d
 		int c,d;
-		simplify(a, b, c, d);
+		simplify(a, b, &c, &d);
 		//begin decomposition
 		int e = 0 ;
 		int h, p, s; 
@@ -45,7 +73,7 @@ PeriodicRepr & PeriodicReprFactory::build(int a, int b)
 		else
 		{
 			//compute periodic pattern
-			t = 2;
+			int t = 2;
 			while ( t % d != 1 )
 			{
 				s = s + 1;
@@ -53,17 +81,19 @@ PeriodicRepr & PeriodicReprFactory::build(int a, int b)
 			}
 			p = c * t / d ;
 		}
-		return PeriodicRepr(e, h, p, s);
+		return PeriodicRepresentation(e, h, p, s);
 }
 
 
 
-float computeMult(int w0, int wh, PeriodicRepr & ratConst, float x )
+float RationalConstants::computeMult(int w0, int wh, PeriodicRepresentation & ratConst, float x )
 {
-	int s = PeriodicRepr.getS();
-	int pi = new int[log(2,w0-wh)];
+	int s = ratConst.getS();
+	int p = ratConst.getP();
+	int h = ratConst.getH();
+	int * pi = new int[ (int) log2(w0-wh) ];
 
-	int pi[0]=( 2^(-s) ) * p * x;	
+	pi[0]=( 2^(-s) ) * p * x;	
 
 	int i=0;
 
@@ -89,3 +119,6 @@ float computeMult(int w0, int wh, PeriodicRepr & ratConst, float x )
 	delete [] pi;
 	return r;
 }
+
+
+#endif

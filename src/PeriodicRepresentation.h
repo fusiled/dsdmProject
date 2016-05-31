@@ -1,4 +1,5 @@
-
+#ifndef PERIODICREPRESENTATION_H
+#define PERIODICREPRESENTATION_H 
 /**
 Periodic representation of a ftractiona number. Probably a struct would have done
 the same job without additional payload
@@ -6,12 +7,12 @@ Default copy constructor should be ok (all attributes are int)
 **/
 
 
-class PeriodicRepresentation(){
+class PeriodicRepresentation{
 	
 	public:
-		PeriodicRepr(int pS, int pP, int pH=0, int pE=0);
+		PeriodicRepresentation(int pS, int pP, int pH, int pE);
 		//avoid destructor inheritance
-		virtual ~PeriodicRepr() {}
+		virtual ~PeriodicRepresentation() {}
 		//getters
 		int getS() const;
 		int getP() const;
@@ -31,4 +32,7 @@ class PeriodicRepresentation(){
 		const int e;
 
 
-}
+};
+
+
+#endif
