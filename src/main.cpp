@@ -3,6 +3,7 @@
 #include "PeriodicRepresentation.h"
 #include <map>
 #include <iostream>
+#include <bitset>
 
 
 using namespace RationalConstants;
@@ -12,7 +13,7 @@ using namespace std;
 int TestSet[][6]=
 {
 	{5,9,0,0,35,6},
-	{10,30,0,1,2},
+	{10,30,0,0,1,2},
 	{13,14,-1,1,6,3}
 };
 
@@ -29,7 +30,7 @@ int main(int argc, char const *argv[])
 
 	cout<<"Testing shift-and-add algorithm"<<endl;
 	float x=3.5;
-	float result = computeMult2(28,1,build(7,5), 1);
+	float result = computeMult(1,32,24,build(7,5));
 	cout <<"result"<<result << endl;
 	cout <<"expected result:"<< (float) 7/5 <<endl;
 
@@ -43,7 +44,8 @@ bool testBuild(int testElement[])
 	int * tuple=ratNum.getTuple();
 	for (int i=0; i<4;i++)
 	{
-		//cout<<"comparing "<<tuple[i]<<" and "<<testElement[i+2]<<endl;
+
+		//cout<<"comparing "<<bitset<32>(tuple[i])<<" and "<<testElement[i+2]<<endl;
 		if (tuple[i]!=testElement[i+2])
 		{
 			cout<<"error in testBuild!"<<endl;

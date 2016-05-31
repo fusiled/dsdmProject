@@ -19,6 +19,7 @@ class PeriodicRepresentation{
 		int getH() const;
 		int getE() const;
 		int * getTuple() const;
+		int getHWidth() const;
 
 
 

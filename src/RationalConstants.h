@@ -5,6 +5,8 @@
 #include <iostream>
 #include "PeriodicRepresentation.h"
 #include <cmath>
+#include <cstring>
+#include <bitset>
 
 using namespace std;
 
@@ -14,8 +16,7 @@ namespace RationalConstants
 	//returns a periodic representation of the number a/b
 	PeriodicRepresentation build(int a, int b);
 	//compute the mult
-	float computeMult(int w0, int wh, PeriodicRepresentation ratConst, float x ); //x must be specified better.. evaluate a generic	
-	unsigned int computeMult2(int w0, int wh, PeriodicRepresentation ratConst, int x ); //x must be specified better.. evaluate a generic	
+	unsigned int computeMult(int number, int w0, int significandSize, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
 	
 	//needed?
 	//N = precision of x
@@ -93,80 +94,55 @@ PeriodicRepresentation RationalConstants::build(int a, int b)
 
 
 
-float RationalConstants::computeMult(int w0, int wh, PeriodicRepresentation ratConst, float x )
+unsigned int RationalConstants::computeMult(int number, int w0, int significandSize, PeriodicRepresentation ratConst )
 {
+	//initialize PeriodicRepresentation variables
+	cout<<"past float:   "<<bitset<32>(number)<<endl;
 	int s = ratConst.getS();
 	int p = ratConst.getP();
 	int h = ratConst.getH();
-	float * pi = new float[ (int) log2(w0-wh) ];
+	int wh= ratConst.getHWidth();
+	cout<<"wh "<<wh<<endl;
+
+
+	int x = number;
+	int * pi = new int[ (int) log2(w0-wh) ];
 	cout<<"s="<<s<<" p="<<p<<endl;
-	pi[0]=( pow(2,(-s)) ) * p * x;
-	cout<<"pi[0]="<<pi[0]<<endl;
+	cout<<"------------------compute-pi-vector-----------"<<endl;
+	//with optimization
+	pi[0]= ( p * x );
+	while(pi[0] % 2 ==0)
+	{
+		pi[0]=pi[0]>>1;
+	}
+	cout<<"pi[0]:        "<< bitset<32>(pi[0]) <<endl;
 
 	int i=0;
 
-	while ( (pow(2,i))*s < w0 )
+	while ( s<<i < w0 - wh )
 	{
-		pi[i+1] = pi[i] +  pow( 2, ( pow(-2, i ) ) * s ) * pi[i] ;
-		i++;
-	}
-	//trivial implementation to find j. evaluate a replacement
-	int j=0;
-	while ( ( pow(2,i) + pow(2,j) ) * s < ( w0 - wh ) ) j++; 
-
-	float r;
-
-	if (j <= i)
-	{
-		r= ( h*x + pi[j] ) + pow( 2, ( pow(-2, i ) ) * s ) * pi[i];
-	} 
-	else
-	{
-		r= h*x + ( pi[i]  + pow( 2, ( pow(-2, i ) ) * s ) * pi[i] );
-	}
-	delete [] pi;
-	return r;
-}
-
-
-unsigned int RationalConstants::computeMult2(int w0, int wh, PeriodicRepresentation ratConst, int x )
-{
-	int s = ratConst.getS();
-	int p = ratConst.getP();
-	int h = ratConst.getH();
-	int * pi = new int[ (int) log2(w0-wh) ];
-	cout<<"s="<<s<<" p="<<p<<endl;
-	cout<<"p * x = "<< p*x<<endl;
-	pi[0]= ( p * x );
-	cout<<"pi[0]="<<pi[0]<<endl;
-
-	unsigned int i=0;
-
-	while ( s<<i < w0 )
-	{
-		cout<<"power: "<<(int) pow(2,i)*s<<endl;
-		cout<<"shifted power: "<< (s<<i) <<endl;
-		cout<<"shifted part: "<< ( pi[i] << ( (int) pow(2,i)*s ) ) <<endl;
+		cout<<"shifted part: "<< bitset<32>( pi[i] << ( s<<i )) <<endl;
 		pi[i+1] = pi[i] +   ( pi[i] << ( s<<i) ) ;
-		cout<<"pi[i+1]="<<pi[i+1]<<endl;
+		cout<<"pi[i+1]:      "<<bitset<32>(pi[i+1])<<endl;
 		i++;
 	}
 	//trivial implementation to find j. evaluate a replacement
+	cout<<"----------compute-j---------------------------"<<endl;
 	unsigned int j=0;
 	while ( s<<( i + j ) < ( w0 - wh ) ) j++; 
-
-	unsigned int r;
-
-	if (j <= i)
-	{
-		r= ( (h*x)<<((s<<i)+s) + pi[j] ) + pi[i] << ( s<<i );
-	} 
-	else
-	{
-		r= (h*x)<< (s<<i) + ( pi[i]  + pi[i] << ( s<<i ) );
+	cout<<"j: "<<j<<endl;
+	if (j>0){
+		cout<<"select pi["<<j<<"]: "<<bitset<32>(pi[j])<<endl;
 	}
+	cout<<"------------generating-result-----------------"<<endl;
+	//this will be the final result
+	unsigned int r;
+	cout<<"h*x:          "<<bitset<32>(h*x)<<endl;
+	cout<<"s: "<<s<<", i: "<<i<<endl;
+	cout<<"pi["<<i<<"]:        "<<bitset<32>(pi[i])<<endl;
+	r = ( (h*x)<<(s<<i)-wh)+pi[i];
 	delete [] pi;
-	cout<<"returning "<<r<<endl;
+	cout<<"returning     "<<bitset<32>(r)<<endl;
 	return r;
 }
 

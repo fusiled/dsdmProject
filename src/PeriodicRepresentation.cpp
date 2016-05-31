@@ -1,4 +1,5 @@
 #include "PeriodicRepresentation.h"
+#include <cmath>
 
 PeriodicRepresentation::PeriodicRepresentation(int pE, int pH, int pP, int pS):
 	s{ pS },
@@ -21,4 +22,10 @@ int * PeriodicRepresentation::getTuple() const
 	retTuple[2]=p;
 	retTuple[3]=s;
 	return retTuple;
+}
+
+int PeriodicRepresentation::getHWidth() const
+{
+	if (h<=1){return 1;}
+	return ceil(log2(h));
 }
