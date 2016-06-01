@@ -27,5 +27,5 @@ int * PeriodicRepresentation::getTuple() const
 int PeriodicRepresentation::getHWidth() const
 {
 	if (h<=1){return 1;}
-	return ceil(log2(h));
+	return floor( log2(h) + 1 );
 }

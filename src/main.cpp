@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
 
 	cout<<"Testing shift-and-add algorithm"<<endl;
 	float x=3.5;
-	float result = computeMult(1,32,24,build(7,5));
+	float result = computeMult(1,16,12,build(13,5));
 	cout <<"result"<<result << endl;
 	cout <<"expected result:"<< (float) 7/5 <<endl;
 

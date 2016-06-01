@@ -102,18 +102,17 @@ unsigned int RationalConstants::computeMult(int number, int w0, int significandS
 	int p = ratConst.getP();
 	int h = ratConst.getH();
 	int wh= ratConst.getHWidth();
-	cout<<"wh "<<wh<<endl;
-
-
 	int x = number;
-	int * pi = new int[ (int) log2(w0-wh) ];
+	int * pi = new int[ (int) ceil(log2(w0-wh)) ];
 	cout<<"s="<<s<<" p="<<p<<endl;
 	cout<<"------------------compute-pi-vector-----------"<<endl;
 	//with optimization
 	pi[0]= ( p * x );
+	int offset=0;
 	while(pi[0] % 2 ==0)
 	{
 		pi[0]=pi[0]>>1;
+		offset++;
 	}
 	cout<<"pi[0]:        "<< bitset<32>(pi[0]) <<endl;
 
@@ -122,7 +121,7 @@ unsigned int RationalConstants::computeMult(int number, int w0, int significandS
 	while ( s<<i < w0 - wh )
 	{
 		cout<<"shifted part: "<< bitset<32>( pi[i] << ( s<<i )) <<endl;
-		pi[i+1] = pi[i] +   ( pi[i] << ( s<<i) ) ;
+		pi[i+1] = pi[i] + ( pi[i] << ( s<<i) ) ;
 		cout<<"pi[i+1]:      "<<bitset<32>(pi[i+1])<<endl;
 		i++;
 	}
@@ -140,7 +139,7 @@ unsigned int RationalConstants::computeMult(int number, int w0, int significandS
 	cout<<"h*x:          "<<bitset<32>(h*x)<<endl;
 	cout<<"s: "<<s<<", i: "<<i<<endl;
 	cout<<"pi["<<i<<"]:        "<<bitset<32>(pi[i])<<endl;
-	r = ( (h*x)<<(s<<i)-wh)+pi[i];
+	r = ( (h*x)<<(s<<i)-offset)+(pi[i]);
 	delete [] pi;
 	cout<<"returning     "<<bitset<32>(r)<<endl;
 	return r;
