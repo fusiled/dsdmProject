@@ -8,6 +8,8 @@
 #include <cstring>
 #include <bitset>
 
+#define CHUNCK_SIZE 32
+
 using namespace std;
 
 namespace RationalConstants
@@ -16,13 +18,37 @@ namespace RationalConstants
 	//returns a periodic representation of the number a/b
 	PeriodicRepresentation build(int a, int b);
 	//compute the mult
-	unsigned int computeMult(int number, int w0, int significandSize, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
-	
+	unsigned int computeMult(unsigned int x, int w0, int significandSize, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
 	//needed?
 	//N = precision of x
 	//Q = precision of the result
 	int correctRounding(int N, int Q);	
 }
+
+
+//returns bit of the number at desired position
+bool getBit(unsigned int number, int position)
+{
+	if (position >= 32 || position < 0)
+	{
+		return -1;
+	}
+	return ((number >> position) & (0x1));
+}
+
+
+unsigned int reverseBits(unsigned int input)
+{
+    unsigned int output = input;
+    for (int i = sizeof(input) * 8 - 1; i; --i)
+    {
+        output <<= 1;
+        input >>= 1;
+        output |= input & 1;
+    }
+    return output;
+}
+
 
 
 int gcd ( int a, int b )
@@ -93,37 +119,39 @@ PeriodicRepresentation RationalConstants::build(int a, int b)
 }
 
 
-
-unsigned int RationalConstants::computeMult(int number, int w0, int significandSize, PeriodicRepresentation ratConst )
+unsigned int RationalConstants::computeMult(unsigned int x, int w0, int significandSize, PeriodicRepresentation ratConst )
 {
+	cout<<"past x:       "<<bitset<CHUNCK_SIZE>(x)<<endl;
 	//initialize PeriodicRepresentation variables
-	cout<<"past float:   "<<bitset<32>(number)<<endl;
 	int s = ratConst.getS();
 	int p = ratConst.getP();
 	int h = ratConst.getH();
 	int wh= ratConst.getHWidth();
-	int x = number;
-	int * pi = new int[ (int) ceil(log2(w0-wh)) ];
+
+	//save pi approximations in this array
+	unsigned int * pi = new unsigned int[ (int) ceil(log2(w0-wh)) ];
 	cout<<"s="<<s<<" p="<<p<<endl;
 	cout<<"------------------compute-pi-vector-----------"<<endl;
-	//with optimization
-	pi[0]= ( p * x );
-	int offset=0;
-	while(pi[0] % 2 ==0)
-	{
-		pi[0]=pi[0]>>1;
-		offset++;
-	}
-	cout<<"pi[0]:        "<< bitset<32>(pi[0]) <<endl;
-
 	int i=0;
+	int trailZeroes=0;
+	pi[0]= ( p * x )<<(CHUNCK_SIZE-s);
+	//remove useless bits and save trailZeroes for the future
+	if ( getBit(pi[0],CHUNCK_SIZE-1) == 0 )
+	{
+		pi[0] <<= 1;
+		trailZeroes++;
+	}
+	cout<<"pi["<<i<<"]:        "<< bitset<CHUNCK_SIZE>(pi[0]) <<endl;
 
+	//iterate until we have generated enough approximations of the decimal part. 
+	//Save the result of the iteration in pi[i+1]
 	while ( s<<i < w0 - wh )
 	{
-		cout<<"shifted part: "<< bitset<32>( pi[i] << ( s<<i )) <<endl;
-		pi[i+1] = pi[i] + ( pi[i] << ( s<<i) ) ;
-		cout<<"pi[i+1]:      "<<bitset<32>(pi[i+1])<<endl;
+		pi[i+1] = pi[i] + ( pi[i] >> ( s<<i) ) ;
+		if (getBit(pi[0],CHUNCK_SIZE-1)==0) pi[0] <<=1 ;
+		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i+1])<<endl;
 		i++;
+		
 	}
 	//trivial implementation to find j. evaluate a replacement
 	cout<<"----------compute-j---------------------------"<<endl;
@@ -131,17 +159,18 @@ unsigned int RationalConstants::computeMult(int number, int w0, int significandS
 	while ( s<<( i + j ) < ( w0 - wh ) ) j++; 
 	cout<<"j: "<<j<<endl;
 	if (j>0){
-		cout<<"select pi["<<j<<"]: "<<bitset<32>(pi[j])<<endl;
+		cout<<"select pi["<<j<<"]: "<<bitset<CHUNCK_SIZE>(pi[j])<<endl;
 	}
 	cout<<"------------generating-result-----------------"<<endl;
+	cout<<"s: "<<s<<", i: "<<i<<endl;
 	//this will be the final result
 	unsigned int r;
-	cout<<"h*x:          "<<bitset<32>(h*x)<<endl;
-	cout<<"s: "<<s<<", i: "<<i<<endl;
-	cout<<"pi["<<i<<"]:        "<<bitset<32>(pi[i])<<endl;
-	r = ( (h*x)<<(s<<i)-offset)+(pi[i]);
+	long int integerR = (h*x)<<(CHUNCK_SIZE-wh);
+	cout<<"shifted h*x:  "<<bitset<CHUNCK_SIZE>(integerR)<<endl;
+	cout<<"pi["<<i<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i])<<endl;
+	r = integerR+(pi[i]>>wh+trailZeroes);
 	delete [] pi;
-	cout<<"returning     "<<bitset<32>(r)<<endl;
+	cout<<"returning     "<<bitset<CHUNCK_SIZE>(r)<<endl;
 	return r;
 }
 

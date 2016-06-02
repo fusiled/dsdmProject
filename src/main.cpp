@@ -12,9 +12,10 @@ using namespace std;
 
 int TestSet[][6]=
 {
-	{5,9,0,0,35,6},
-	{10,30,0,0,1,2},
-	{13,14,-1,1,6,3}
+	//a,   b,   e,   h,   p,   s
+	{ 5,   9,   0,   0,   35,  6},
+	{ 10,  30,  0,   0,   1,   2},
+	{ 13,  14, -1,   1,   6,   3}
 };
 
 
@@ -30,9 +31,9 @@ int main(int argc, char const *argv[])
 
 	cout<<"Testing shift-and-add algorithm"<<endl;
 	float x=3.5;
-	float result = computeMult(1,16,12,build(13,5));
+	float result = computeMult(1,32,24,build(13,5));
+	//float result = computeMult(1,32,24,build(7,5));
 	cout <<"result"<<result << endl;
-	cout <<"expected result:"<< (float) 7/5 <<endl;
 
 	return 0;
 }
