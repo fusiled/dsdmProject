@@ -18,7 +18,7 @@ namespace RationalConstants
 	//returns a periodic representation of the number a/b
 	PeriodicRepresentation build(int a, int b);
 	//compute the mult
-	unsigned int computeMult(unsigned int x, int w0, int significandSize, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
+	unsigned int computeMult(unsigned int x, int w0, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
 	//needed?
 	//N = precision of x
 	//Q = precision of the result
@@ -119,9 +119,10 @@ PeriodicRepresentation RationalConstants::build(int a, int b)
 }
 
 
-unsigned int RationalConstants::computeMult(unsigned int x, int w0, int significandSize, PeriodicRepresentation ratConst )
+unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepresentation ratConst )
 {
 	cout<<"past x:       "<<bitset<CHUNCK_SIZE>(x)<<endl;
+	cout<<"PeriodicRepresentation:"<<endl;
 	//initialize PeriodicRepresentation variables
 	int s = ratConst.getS();
 	int p = ratConst.getP();
@@ -130,9 +131,10 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, int signific
 
 	//save pi approximations in this array
 	unsigned int * pi = new unsigned int[ (int) ceil(log2(w0-wh)) ];
-	cout<<"s="<<s<<" p="<<p<<endl;
+	cout<<"s="<<s<<" p="<<p<<" w0="<<w0<<endl;
 	cout<<"------------------compute-pi-vector-----------"<<endl;
 	int i=0;
+	int j=0;
 	int trailZeroes=0;
 	pi[0]= ( p * x )<<(CHUNCK_SIZE-s);
 	//remove useless bits and save trailZeroes for the future
@@ -151,24 +153,52 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, int signific
 		if (getBit(pi[0],CHUNCK_SIZE-1)==0) pi[0] <<=1 ;
 		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i+1])<<endl;
 		i++;
-		
-	}
-	//trivial implementation to find j. evaluate a replacement
-	cout<<"----------compute-j---------------------------"<<endl;
-	unsigned int j=0;
-	while ( s<<( i + j ) < ( w0 - wh ) ) j++; 
-	cout<<"j: "<<j<<endl;
-	if (j>0){
-		cout<<"select pi["<<j<<"]: "<<bitset<CHUNCK_SIZE>(pi[j])<<endl;
+		cout<<"j condition: " <<( s<<(i-1) )*s<<" < "<<w0<<" <= "<< (s<<i)<<" ? ";
+		if  (
+				( ( s<<(i-1) ) < w0 )
+				&&
+				(w0 <= (s<<i) )
+			)
+		{
+			cout<<"YES \\(..)/"<<endl;
+			j=0;
+			cout<<"Testing "<<(s<<i-1)+(s<<j) <<" >= "<< w0 -wh <<endl; 
+			while ( (s<<i-1)+(s<<j) < (w0-wh) )
+			{
+				j++;
+				cout<<"Testing "<<(s<<i-1)+(s<<j) <<" >= "<< w0-wh <<endl; 
+			}
+			//we have found a suitable j.. exit from the cycle
+			if (j>0) break;
+		}
+		else
+		{
+			cout<<"no ):"<<endl;
+		}
 	}
 	cout<<"------------generating-result-----------------"<<endl;
 	cout<<"s: "<<s<<", i: "<<i<<endl;
-	//this will be the final result
 	unsigned int r;
 	long int integerR = (h*x)<<(CHUNCK_SIZE-wh);
 	cout<<"shifted h*x:  "<<bitset<CHUNCK_SIZE>(integerR)<<endl;
-	cout<<"pi["<<i<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i])<<endl;
-	r = integerR+(pi[i]>>wh+trailZeroes);
+	//use j if it's possible
+	if (j>0){
+		//print addends
+		cout<<"EXPLOIT j OPTMIZATION"<<endl;
+		cout<<"sel pi[j]: "<<j<<": "<<bitset<CHUNCK_SIZE>(pi[j])<<endl;
+		cout<<"sel pi[i]: "<<i-1<<": "<<bitset<CHUNCK_SIZE>(pi[i-1])<<endl;
+		int shiftedJ=pi[j]>>(wh+trailZeroes);
+		int shiftedI=pi[i-1]>>((s<<j)+wh+trailZeroes);
+		cout<<"shifted j:    "<<bitset<CHUNCK_SIZE>(shiftedJ)<<endl;
+		cout<<"shifted i:    "<<bitset<CHUNCK_SIZE>(shiftedI)<<endl;
+		r = integerR+shiftedJ+shiftedI;
+	}
+	else
+	{
+		cout<<"pi["<<i<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i])<<endl;
+		r = integerR+(pi[i]>>wh+trailZeroes);
+	}
+	//this will be the final result
 	delete [] pi;
 	cout<<"returning     "<<bitset<CHUNCK_SIZE>(r)<<endl;
 	return r;

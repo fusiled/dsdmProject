@@ -6,6 +6,8 @@ the same job without additional payload
 Default copy constructor should be ok (all attributes are int)
 **/
 
+#include <string>
+
 
 class PeriodicRepresentation{
 	
