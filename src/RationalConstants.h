@@ -153,11 +153,11 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepr
 		if (getBit(pi[0],CHUNCK_SIZE-1)==0) pi[0] <<=1 ;
 		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i+1])<<endl;
 		i++;
-		cout<<"j condition: " <<( s<<(i-1) )*s<<" < "<<w0<<" <= "<< (s<<i)<<" ? ";
+		cout<<"j condition: " <<( s<<(i-1) )*s<<" < "<<w0<<" <= "<< (s<<i)*s<<" ? ";
 		if  (
-				( ( s<<(i-1) ) < w0 )
+				( ( s<<(i-1)*s ) < w0 )
 				&&
-				(w0 <= (s<<i) )
+				(w0 <= (s<<i)*s )
 			)
 		{
 			cout<<"YES \\(..)/"<<endl;

@@ -32,8 +32,8 @@ int main(int argc, char const *argv[])
 	cout<<"Testing shift-and-add algorithm"<<endl;
 	float x=3.5;
 	//float result = computeMult(1,32,24,build(13,5));
-	//float result = computeMult(1,32,24,build(7,5));
-	float result = computeMult(1,13,PeriodicRepresentation(0,3,1,1));
+	float result = computeMult(1,32,build(7,10));
+	//float result = computeMult(1,13,PeriodicRepresentation(0,3,1,1));
 
 	return 0;
 }
