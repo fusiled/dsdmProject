@@ -5,6 +5,8 @@ EXEC = exec_mult
 
 
 
+exec: build
+	./$(EXEC)
 
 
 build:
