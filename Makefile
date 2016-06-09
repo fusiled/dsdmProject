@@ -1,7 +1,12 @@
 CPP = g++
+CPPFLAGS= -std=c++11
 SRC_DIR = src
-SRC = PeriodicRepresentation.cpp main.cpp
+SRC = FixedPoint.cpp PeriodicRepresentation.cpp main.cpp
 EXEC = exec_mult
+
+ifdef DEBUG
+	CPPFLAGS += -D DEBUG
+endif
 
 
 
@@ -10,4 +15,4 @@ exec: build
 
 
 build:
-	cd $(SRC_DIR) && $(CPP)  $(SRC) -o ../$(EXEC) && cd ..
+	cd $(SRC_DIR) && $(CPP) $(CPPFLAGS)  $(SRC) -o ../$(EXEC) && cd ..

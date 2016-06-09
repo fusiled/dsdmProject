@@ -4,11 +4,12 @@
 
 #include <iostream>
 #include "PeriodicRepresentation.h"
+#include "FixedPoint.h"
 #include <cmath>
 #include <cstring>
 #include <bitset>
 
-#define CHUNCK_SIZE 32
+#define CHUNK_SIZE 32
 
 using namespace std;
 
@@ -19,12 +20,20 @@ namespace RationalConstants
 	PeriodicRepresentation build(int a, int b);
 	//compute the mult
 	unsigned int computeMult(unsigned int x, int w0, PeriodicRepresentation ratConst ); //x must be specified better.. evaluate a generic	
+	FixedPoint computeDivision(int x, int b );
 	//needed?
 	//N = precision of x
 	//Q = precision of the result
 	int correctRounding(int N, int Q);	
 }
 
+
+
+int neededBits(int number)
+{
+	if (number<=1) return 1;
+	return floor(log2(number))+1;
+}
 
 //returns bit of the number at desired position
 bool getBit(unsigned int number, int position)
@@ -74,11 +83,15 @@ void simplify(int a, int b, int * c, int * d)
 
 PeriodicRepresentation RationalConstants::build(int a, int b)
 {
+		#ifdef DEBUG
 		cout<<"Building PeriodicRepresentation for "<<a<<"/"<<b<<endl;
+		#endif
 		//reduce a/b into c/d
 		int c,d;
 		simplify(a, b, &c, &d);
+		#ifdef DEBUG
 		cout<<"Simplified fraction: "<<c<<"/"<<d<<endl;
+		#endif
 		//begin decomposition
 		int e = 0 ;
 		int h, p, s; 
@@ -114,14 +127,16 @@ PeriodicRepresentation RationalConstants::build(int a, int b)
 			}
 			p = c * t / d ;
 		}
+		#ifdef DEBUG
 		cout<<"Generating PeriodicRepresentation instance with (e="<<e<<", h="<<h<<", p="<<p<<", s="<<s<<")"<<endl;
+		#endif
 		return PeriodicRepresentation(e, h, p, s);
 }
 
 
 unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepresentation ratConst )
 {
-	cout<<"past x:       "<<bitset<CHUNCK_SIZE>(x)<<endl;
+	cout<<"past x:       "<<bitset<CHUNK_SIZE>(x)<<endl;
 	cout<<"PeriodicRepresentation:"<<endl;
 	//initialize PeriodicRepresentation variables
 	int s = ratConst.getS();
@@ -136,22 +151,22 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepr
 	int i=0;
 	int j=0;
 	int trailZeroes=0;
-	pi[0]= ( p * x )<<(CHUNCK_SIZE-s);
+	pi[0]= ( p * x )<<(CHUNK_SIZE-s);
 	//remove useless bits and save trailZeroes for the future
-	if ( getBit(pi[0],CHUNCK_SIZE-1) == 0 )
+	if ( getBit(pi[0],CHUNK_SIZE-1) == 0 )
 	{
 		pi[0] <<= 1;
 		trailZeroes++;
 	}
-	cout<<"pi["<<i<<"]:        "<< bitset<CHUNCK_SIZE>(pi[0]) <<endl;
+	cout<<"pi["<<i<<"]:        "<< bitset<CHUNK_SIZE>(pi[0]) <<endl;
 
 	//iterate until we have generated enough approximations of the decimal part. 
 	//Save the result of the iteration in pi[i+1]
-	while ( s<<i < w0 - wh )
+	while ( s<<i < (w0 - wh) && j<=i-1  )
 	{
 		pi[i+1] = pi[i] + ( pi[i] >> ( s<<i) ) ;
-		if (getBit(pi[0],CHUNCK_SIZE-1)==0) pi[0] <<=1 ;
-		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i+1])<<endl;
+		if (getBit(pi[0],CHUNK_SIZE-1)==0) pi[0] <<=1 ;
+		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNK_SIZE>(pi[i+1])<<endl;
 		i++;
 		cout<<"j condition: " <<( s<<(i-1) )*s<<" < "<<w0<<" <= "<< (s<<i)*s<<" ? ";
 		if  (
@@ -169,7 +184,7 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepr
 				cout<<"Testing "<<(s<<i-1)+(s<<j) <<" >= "<< w0-wh <<endl; 
 			}
 			//we have found a suitable j.. exit from the cycle
-			if (j>0) break;
+			if (j>0 && j<=i) break;
 		}
 		else
 		{
@@ -179,29 +194,87 @@ unsigned int RationalConstants::computeMult(unsigned int x, int w0, PeriodicRepr
 	cout<<"------------generating-result-----------------"<<endl;
 	cout<<"s: "<<s<<", i: "<<i<<endl;
 	unsigned int r;
-	long int integerR = (h*x)<<(CHUNCK_SIZE-wh);
-	cout<<"shifted h*x:  "<<bitset<CHUNCK_SIZE>(integerR)<<endl;
+	long int integerR = (h*x)<<(CHUNK_SIZE-wh);
+	cout<<"shifted h*x:  "<<bitset<CHUNK_SIZE>(integerR)<<endl;
 	//use j if it's possible
 	if (j>0){
 		//print addends
 		cout<<"EXPLOIT j OPTMIZATION"<<endl;
-		cout<<"sel pi[j]: "<<j<<": "<<bitset<CHUNCK_SIZE>(pi[j])<<endl;
-		cout<<"sel pi[i]: "<<i-1<<": "<<bitset<CHUNCK_SIZE>(pi[i-1])<<endl;
+		cout<<"sel pi[j]: "<<j<<": "<<bitset<CHUNK_SIZE>(pi[j])<<endl;
+		cout<<"sel pi[i]: "<<i-1<<": "<<bitset<CHUNK_SIZE>(pi[i-1])<<endl;
 		int shiftedJ=pi[j]>>(wh+trailZeroes);
 		int shiftedI=pi[i-1]>>((s<<j)+wh+trailZeroes);
-		cout<<"shifted j:    "<<bitset<CHUNCK_SIZE>(shiftedJ)<<endl;
-		cout<<"shifted i:    "<<bitset<CHUNCK_SIZE>(shiftedI)<<endl;
+		cout<<"shifted j:    "<<bitset<CHUNK_SIZE>(shiftedJ)<<endl;
+		cout<<"shifted i:    "<<bitset<CHUNK_SIZE>(shiftedI)<<endl;
 		r = integerR+shiftedJ+shiftedI;
 	}
 	else
 	{
-		cout<<"pi["<<i<<"]:        "<<bitset<CHUNCK_SIZE>(pi[i])<<endl;
+		cout<<"pi["<<i<<"]:        "<<bitset<CHUNK_SIZE>(pi[i])<<endl;
 		r = integerR+(pi[i]>>wh+trailZeroes);
 	}
 	//this will be the final result
 	delete [] pi;
-	cout<<"returning     "<<bitset<CHUNCK_SIZE>(r)<<endl;
+	cout<<"returning     "<<bitset<CHUNK_SIZE>(r)<<endl;
 	return r;
+}
+
+
+//in this functions pi approximations follow the rule of FixedPoint class
+FixedPoint RationalConstants::computeDivision(int x, int b )
+{
+	cout<<"**************Computing result of "<<x<<"/"<<b<<"**************"<<endl;
+	simplify(x,b, &x, &b);
+	PeriodicRepresentation divisor=build(1,b);
+	int xBits = neededBits(x);
+	int w0 = xBits + 1 + ceil(log2(b));
+	//int w0 = 32;
+	cout<<"CORRECT ROUNDING IS "<<w0<<" BITS"<<endl;
+	int p  = divisor.getP();
+	int s  = divisor.getS();
+	int i  = 0;
+	int pointPosition;
+
+	//save pi approximations in this array
+	unsigned int * pi = new unsigned int[ (int) ceil(log2(w0)) ];
+
+	pi[0] =  ( p * x );
+	pointPosition = s ;
+
+	#ifdef DEBUG
+	cout<<"pi["<<i<<"]:        "<<bitset<CHUNK_SIZE>(pi[i])<<" point before "<<pointPosition<<endl;
+	#endif
+	//iterate until we have generated enough approximations of the decimal part. 
+	//Save the result of the iteration in pi[i+1]
+	while ( s<<i < w0 )
+	{
+		pi[i+1] = pi[i] + (pi[i]<<(s<<i));
+		pointPosition=pointPosition+(s*(i+1));
+		#ifdef DEBUG
+		cout<<"pi["<<i+1<<"]:        "<<bitset<CHUNK_SIZE>(pi[i+1])<<" point before "<<pointPosition<<endl;
+		#endif
+		i++;
+	}
+	//remove useless bits. This is done in a dumb way.
+	unsigned int piCorrected= pi[i];
+	//do a copy and left shift until we don't lose useful bits
+	unsigned int piCorrectedCopy=piCorrected;
+	int pointPositionCopy=pointPosition;
+	while(getBit(piCorrectedCopy, CHUNK_SIZE-1) == 0 && pointPosition < CHUNK_SIZE )
+	{
+		piCorrectedCopy<<=1;
+		pointPositionCopy++;
+	}
+	//compute occupiedBits and do the shift to adjust bits
+	int occupiedBits = CHUNK_SIZE - ( pointPositionCopy - pointPosition );
+	piCorrected>>= occupiedBits - w0;
+	pointPosition= pointPosition - occupiedBits + w0;
+	//return instance of FixedPoint
+	FixedPoint r(piCorrected,pointPosition);
+	delete [] pi;
+	return r;
+
+
 }
 
 
