@@ -228,17 +228,17 @@ FixedPoint RationalConstants::computeDivision(int x, int b )
 	PeriodicRepresentation divisor=build(1,b);
 	int xBits = neededBits(x);
 	int w0 = xBits + 1 + ceil(log2(b));
-	//int w0 = 32;
 	cout<<"CORRECT ROUNDING IS "<<w0<<" BITS"<<endl;
 	int p  = divisor.getP();
 	int s  = divisor.getS();
+	int e  = divisor.getE();
 	int i  = 0;
 	int pointPosition;
 
 	//save pi approximations in this array
 	unsigned int * pi = new unsigned int[ (int) ceil(log2(w0)) ];
 
-	pi[0] =  ( p * x );
+	pi[0] =  p * x;
 	pointPosition = s ;
 
 	#ifdef DEBUG
@@ -257,18 +257,26 @@ FixedPoint RationalConstants::computeDivision(int x, int b )
 	}
 	//remove useless bits. This is done in a dumb way.
 	unsigned int piCorrected= pi[i];
-	//do a copy and left shift until we don't lose useful bits
-	unsigned int piCorrectedCopy=piCorrected;
-	int pointPositionCopy=pointPosition;
-	while(getBit(piCorrectedCopy, CHUNK_SIZE-1) == 0 && pointPosition < CHUNK_SIZE )
-	{
-		piCorrectedCopy<<=1;
-		pointPositionCopy++;
-	}
-	//compute occupiedBits and do the shift to adjust bits
-	int occupiedBits = CHUNK_SIZE - ( pointPositionCopy - pointPosition );
-	piCorrected>>= occupiedBits - w0;
-	pointPosition= pointPosition - occupiedBits + w0;
+	//adjust e shift -> move point_position
+	pointPosition -= e;
+	#ifdef DEBUG
+		cout<<"pre-correct:  "<<bitset<32>(piCorrected)<<" point before "<<pointPosition<<endl;
+	#endif
+
+	int intBits = ( piCorrected >> pointPosition ) == 0 ? 0 : neededBits(piCorrected >> pointPosition);
+	int occupiedBits = intBits + pointPosition;
+
+	#ifdef DEBUG
+		cout<<"intBits is "<<intBits<<endl;
+		cout<<"occupiedBits is "<<occupiedBits<<endl;
+		cout<<"correction is "<<occupiedBits - w0<<endl;
+	#endif
+
+	//apply correction
+	int correction = occupiedBits <= w0 ? 0 : occupiedBits - w0;
+	piCorrected>>= correction;
+	pointPosition= pointPosition - correction;
+
 	//return instance of FixedPoint
 	FixedPoint r(piCorrected,pointPosition);
 	delete [] pi;

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <bitset>
 
+#define TEST_SET_SIZE 4
+
 
 using namespace RationalConstants;
 using namespace std;
@@ -16,24 +18,27 @@ int TestSet[][6]=
 	//a,   b,   e,   h,   p,   s
 	{ 5,   9,   0,   0,   35,  6},
 	{ 10,  30,  0,   0,   1,   2},
-	{ 13,  14, -1,   1,   6,   3}
+	{ 13,  14, -1,   1,   6,   3},
+	{ 7,    3,  0,   2,   1,   2}
 };
 
 
 bool testBuild(int testElement[]);
+bool testDivision(int testElement[]);
 
 int main(int argc, char const *argv[])
 {
 	cout<<"Testing build function"<<endl;
-	for (int i=0; i<3; i++)
+	for (int i=0; i<TEST_SET_SIZE; i++)
 	{
 		testBuild(TestSet[i]);
 	}
 
 	cout<<"Testing shift-and-add algorithm"<<endl;
-	FixedPoint fp = computeDivision(7,3);
-	cout<<"Result: "<<fp.toString()<<endl;
-	cout<<fp.rawString()<<endl;
+	for (int i=0; i<TEST_SET_SIZE; i++)
+	{
+		testDivision(TestSet[i]);
+	}
 
 
 	return 0;
@@ -55,5 +60,15 @@ bool testBuild(int testElement[])
 		}
 	}
 	delete[] tuple;
+}
 
+
+bool testDivision(int testElement[])
+{
+	FixedPoint fp = computeDivision(testElement[0], testElement[1]);
+	#ifdef DEBUG
+		cout<<testElement[0]<<"/"<<testElement[1]<<"="<<((float)testElement[0])/((float)testElement[1])<<endl;
+		cout<<"computed result:"<<fp.toString()<<endl;
+		cout<<"raw result:   "<<fp.rawString()<<endl;
+	#endif
 }
