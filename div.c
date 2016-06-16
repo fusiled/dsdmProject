@@ -1,8 +1,8 @@
 #include<stdio.h>
 
-volatile int a;
+volatile unsigned int a;
 
-int div(int b)
+unsigned int div(unsigned int b)
 {
 	return a/b;
 }
@@ -10,7 +10,7 @@ int div(int b)
 int main()
 {
 	a=15;
-	volatile int res=a/3;
+	volatile unsigned int res=a/3;
 	printf("result: %d\n", res );
 	return 0;
 }
